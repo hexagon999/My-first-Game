@@ -237,15 +237,26 @@ export default function App() {
     }
   }, [])
 
+  const updateJoystick = (e: React.PointerEvent<HTMLDivElement>) => {
+    const rect = e.currentTarget.getBoundingClientRect()
+    const dx = (e.clientX - (rect.left + rect.width / 2)) / (rect.width / 2)
+    const dy = (e.clientY - (rect.top + rect.height / 2)) / (rect.height / 2)
+    const x = clamp(dx, -1, 1)
+    const y = clamp(dy, -1, 1)
+    joystickRef.current = { x, y }
+    e.currentTarget.style.setProperty('--stick-x', `${x * 30}px`)
+    e.currentTarget.style.setProperty('--stick-y', `${y * 30}px`)
+  }
+
   const startJoystick = (e: React.PointerEvent<HTMLDivElement>) => {
     e.currentTarget.setPointerCapture(e.pointerId)
-    const rect = e.currentTarget.getBoundingClientRect()
-    const update = (event: React.PointerEvent<HTMLDivElement>) => {
-      const dx = (event.clientX - (rect.left + rect.width / 2)) / (rect.width / 2)
-      const dy = (event.clientY - (rect.top + rect.height / 2)) / (rect.height / 2)
-      joystickRef.current = { x: clamp(dx, -1, 1), y: clamp(dy, -1, 1) }
-    }
-    update(e)
+    updateJoystick(e)
+  }
+
+  const resetJoystick = (e: React.PointerEvent<HTMLDivElement>) => {
+    joystickRef.current = { x: 0, y: 0 }
+    e.currentTarget.style.removeProperty('--stick-x')
+    e.currentTarget.style.removeProperty('--stick-y')
   }
 
   return (
@@ -267,9 +278,10 @@ export default function App() {
         <div
           className="joystick"
           onPointerDown={startJoystick}
-          onPointerMove={e => { if (e.buttons) startJoystick(e) }}
-          onPointerUp={() => { joystickRef.current = { x: 0, y: 0 } }}
-          onPointerCancel={() => { joystickRef.current = { x: 0, y: 0 } }}
+          onPointerMove={e => { if (e.currentTarget.hasPointerCapture(e.pointerId)) updateJoystick(e) }}
+          onPointerUp={resetJoystick}
+          onPointerCancel={resetJoystick}
+          onLostPointerCapture={resetJoystick}
         ><span className="stick" /></div>
         <button className={'attack ' + (nearby ? 'ready' : '')} onPointerDown={e => e.preventDefault()} onClick={() => attackRef.current()}>
           <span>⚔</span><small>ATTACK</small>
