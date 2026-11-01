@@ -72,7 +72,7 @@ export default function App() {
       scene.add(tree)
     }
 
-    for ((let i = 0; i < 34; i++)) {
+    for (let i = 0; i < 34; i++) {
       const angle = i * 2.399
       const radius = 13 + (i % 5) * 2.4
       makeTree(Math.cos(angle) * radius, Math.sin(angle) * radius, 0.75 + (i % 4) * 0.12)
